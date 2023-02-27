@@ -1,0 +1,7 @@
+name: UnlimitedEnchantmentLevel
+version: '${version}'
+main: kr.roinwar.unlimitedenchantmentlevel.UnlimitedEnchantmentLevel
+api-version: 1.19
+authors: [ Yellowstrawberry ]
+description: Unlimited Enchantment Level
+website: roinwar.kr
