@@ -88,6 +88,8 @@ public class Enchanter {
         boolean isnamechanged = !renamed.isEmpty();
         boolean isRepaired = false;
 
+        int cost1 = 1;
+
         ItemStack itemResult = new ItemStack(items[0].getType());
         if(!isEnchantingWithBook) {
             Damageable d = (Damageable) items[0].getItemMeta();
@@ -96,17 +98,19 @@ public class Enchanter {
                 dd -= itemResult.getType().getMaxDurability() * 0.12;
             }
             d.setDamage((Math.max(dd, 0)));
-            itemResult.setItemMeta(d);
             if(d.getDamage() > 0) isRepaired = true;
+            Repairable meta = (Repairable) d;
+            if(isnamechanged) meta.displayName(Component.text(renamed));
+            meta.setRepairCost(Math.max(((Repairable)items[0].getItemMeta()).getRepairCost(), ((Repairable)items[1].getItemMeta()).getRepairCost())+1);
+            cost1 = meta.getRepairCost();
+            itemResult.setItemMeta(d);
         }
-        Repairable meta = (Repairable) itemResult.getItemMeta();
-        if(isnamechanged) meta.displayName(Component.text(renamed));
-        meta.setRepairCost(Math.max(((Repairable)items[0].getItemMeta()).getRepairCost(), ((Repairable)items[1].getItemMeta()).getRepairCost())+1);
+        ItemMeta meta = itemResult.getItemMeta();
         clearEnchantments(meta, items[0].getType() == Material.ENCHANTED_BOOK);
         addEnchantments(meta, result, items[0].getType() == Material.ENCHANTED_BOOK);
         itemResult.setItemMeta(meta);
 
-        return Map.entry((int) (cost+(Math.pow(2, meta.getRepairCost())-1)+(isnamechanged?1:0)+(isRepaired?1:0)), itemResult);
+        return Map.entry((int) (cost+(Math.pow(2, cost1)-1)+(isnamechanged?1:0)+(isRepaired?1:0)), itemResult);
     }
 
     private int getBookMultiplier(Enchantment enchantment) {
@@ -114,12 +118,13 @@ public class Enchanter {
     }
 
     private boolean isApplicable(ItemStack item, Enchantment enchantment) {
-        if(!enchantment.getItemTarget().includes(item)) return false;
+        if(item.getType() == Material.ENCHANTED_BOOK) return true;
+        else if(!enchantment.getItemTarget().includes(item)) return false;
         else if(item.getEnchantments().containsKey(enchantment)) return true;
         for(Enchantment e : item.getEnchantments().keySet()) {
             if(enchantment.conflictsWith(e)) return false;
         }
-        return enchantment.getItemTarget().includes(item) || item.getType() == Material.ENCHANTED_BOOK;
+        return enchantment.getItemTarget().includes(item);
     }
 
     private void clearEnchantments(ItemMeta meta, boolean isBook) {
